@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>周麻婆福建选址决策地图 1.5</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./assets/styles-v10.css?v=20260511-v15" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">1.5 · 福建选址决策地图 · 外部数据源雷达 · 城市 → 区县 → 镇街</p>
+          <h1>周麻婆福建选址决策地图</h1>
+          <p class="subtitle">围绕“今年开店先看哪里”来组织页面：先判断福建 9 城进入顺序，再用真实地图放大城市、区县和镇街，看潜力、适合店型、竞争验证和本店覆盖。</p>
+        </div>
+        <div class="hero-stats" aria-label="核心数据规模">
+          <div><strong id="statCities">...</strong><span>福建城市</span></div>
+          <div><strong id="statAreas">...</strong><span>商圈样本</span></div>
+          <div><strong id="statStreets">...</strong><span>镇街骨架</span></div>
+          <div><strong id="statCompetitors">...</strong><span>五大竞品门店</span></div>
+          <div><strong id="statStores">...</strong><span>周麻婆门店</span></div>
+        </div>
+      </header>
+
+      <section class="decision-path" aria-label="决策路径">
+        <div class="path-step active"><span>1</span><strong>福建总览</strong><em>看城市优先级</em></div>
+        <div class="path-step"><span>2</span><strong>城市放大</strong><em>看区县机会</em></div>
+        <div class="path-step"><span>3</span><strong>区域镇街</strong><em>看镇街潜力</em></div>
+        <div class="path-step"><span>4</span><strong>对比判断</strong><em>安排看铺顺序</em></div>
+      </section>
+
+      <section class="stage stage-province" id="provinceStage">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">第一步</p>
+            <h2>福建省进入顺序</h2>
+            <p>颜色代表当前优先级或关键指标。点击城市后，下方城市地图会自动放大。</p>
+          </div>
+          <label class="control">
+            <span>省图指标</span>
+            <select id="provinceMetric">
+              <option value="priority">进入优先级</option>
+              <option value="score">综合评分</option>
+              <option value="quality">数据质量</option>
+              <option value="competition">竞品密度</option>
+              <option value="coverage">本店覆盖</option>
+            </select>
+          </label>
+        </div>
+        <div class="province-grid">
+          <div class="map-card primary-map">
+            <svg id="provinceMap" viewBox="0 0 760 560" role="img" aria-label="福建省城市优先级地图"></svg>
+            <div class="legend">
+              <span><i class="legend-a"></i>A 优先进</span>
+              <span><i class="legend-b"></i>B 可推进</span>
+              <span><i class="legend-c"></i>C 谨慎补数</span>
+              <span><i class="legend-d"></i>D 暂缓</span>
+            </div>
+          </div>
+          <aside class="rank-panel">
+            <div class="panel-title">
+              <h3>城市排序</h3>
+              <span id="cityRankHint">按进入优先级排序</span>
+            </div>
+            <div class="rank-list" id="cityRankList"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="stage stage-city" id="cityStage">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">第二步</p>
+            <h2 id="cityTitle">城市放大</h2>
+            <p id="citySubtitle">点击福建省地图中的城市，查看真实区县色块和区县机会排序。</p>
+          </div>
+          <label class="control">
+            <span>区县指标</span>
+            <select id="districtMetric">
+              <option value="score">综合评分</option>
+              <option value="opportunity">高潜街道</option>
+              <option value="competition">五大竞品</option>
+              <option value="coverage">本店覆盖</option>
+              <option value="quality">数据质量</option>
+            </select>
+          </label>
+        </div>
+        <div class="city-summary" id="citySummary"></div>
+        <div class="layer-toolbar" aria-label="地图图层开关">
+          <span>地图图层</span>
+          <button class="layer-toggle active" type="button" data-layer="streets">推荐镇街</button>
+          <button class="layer-toggle active" type="button" data-layer="ownStores">周麻婆门店</button>
+          <button class="layer-toggle active" type="button" data-layer="coreCompetitors">五大竞品</button>
+          <button class="layer-toggle active" type="button" data-layer="areas">商圈样本</button>
+          <button class="layer-toggle active" type="button" data-layer="evidence">公开证据点</button>
+          <button class="layer-toggle active" type="button" data-layer="zones">机会分区</button>
+          <label class="label-density"><span>地图视野</span><select id="mapViewMode"><option value="auto" selected>自动适配</option><option value="county">县域全貌</option><option value="core">核心镇街放大</option><option value="blank">本店空白</option><option value="competition">竞品验证</option><option value="coverage">本店覆盖</option><option value="smalltown">小城镇机会</option><option value="evidence">公开证据</option><option value="all">全量县镇街</option></select></label>
+          <label class="label-density"><span>标签密度</span><select id="labelDensity"><option value="low" selected>精简决策</option><option value="medium">标准</option><option value="high">完整</option></select></label>
+          <label class="label-density"><span>街道判断</span><select id="streetOpportunity"><option value="all" selected>全部街道</option><option value="priority">本周优先看</option><option value="observe">可观察</option><option value="covered">本店已覆盖</option><option value="cautious">谨慎</option><option value="blank">高潜空白</option><option value="competition">竞争验证强</option></select></label>
+          <label class="label-density"><span>店型</span><select id="streetStoreType"><option value="all" selected>全部店型</option><option value="社区店">社区店</option><option value="商圈店">商圈店</option><option value="购物中心店">购物中心店</option><option value="高校/办公店">高校/办公店</option></select></label>
+        </div>
+        <div class="city-grid">
+          <div class="map-card city-map-card">
+            <div id="cityLeafletMap" class="leaflet-map city-leaflet-map" role="img" aria-label="城市区县真实地图"></div>
+            <svg id="cityMap" class="svg-fallback" viewBox="0 0 760 560" role="img" aria-label="城市区县机会地图"></svg>
+          </div>
+          <aside class="rank-panel district-rank-panel">
+            <div class="panel-title">
+              <h3>区县机会排序</h3>
+              <span>点击区县进入街道图</span>
+            </div>
+            <div class="rank-list" id="districtRankList"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="stage stage-district" id="districtStage">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">第三步</p>
+            <h2 id="districtTitle">区域镇街机会</h2>
+            <p id="districtSubtitle">点击区县后，这里会放大到区县范围，用镇街气泡表达潜力评分和机会类型；没有可靠边界时只画镇街点，不伪造行政边界。</p>
+          </div>
+          <div class="pill-row" id="districtPills"></div>
+        </div>
+        <div class="district-grid">
+          <div class="map-card district-map-card">
+            <div id="districtLeafletMap" class="leaflet-map district-leaflet-map" role="img" aria-label="区县镇街真实地图"></div>
+            <svg id="districtStreetMap" class="svg-fallback" viewBox="0 0 980 720" role="img" aria-label="区县街道机会地图"></svg>
+          </div>
+          <aside class="street-panel">
+            <div class="panel-title">
+            <h3>镇街潜力榜</h3>
+              <span id="streetRankHint">按评分和推荐等级排序</span>
+            </div>
+            <div class="street-list" id="streetRankList"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="stage stage-detail" id="detailStage">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">第四步</p>
+            <h2>镇街判断与对比</h2>
+            <p>点击镇街后看清基础底盘、适合店型、评分、竞品、本店覆盖、为什么值得看，以及下一步该查什么。</p>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="map-card detail-map-card">
+            <div id="detailLeafletMap" class="leaflet-map detail-leaflet-map" role="img" aria-label="街道详情真实地图"></div>
+            <svg id="detailMap" class="svg-fallback" viewBox="0 0 980 740" role="img" aria-label="街道详情地图"></svg>
+          </div>
+          <article class="detail-card" id="streetDetail"></article>
+          <aside class="compare-card">
+            <div class="panel-title">
+              <h3>对比分析</h3>
+              <span id="compareHint">最多加入 4 个街道</span>
+            </div>
+            <div id="comparePanel"></div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./assets/app-v10.js?v=20260511-v15"></script>
+  </body>
+</html>

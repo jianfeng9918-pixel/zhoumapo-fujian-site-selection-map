@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+
+# Large generated backups. Keep the current data/preview-data.json only.
+data/preview-data.bak-*.json
+data/*.tmp
+data/*.gz
+
+# Local validation screenshots / browser artifacts.
+*.log
+.cache/
+node_modules/
