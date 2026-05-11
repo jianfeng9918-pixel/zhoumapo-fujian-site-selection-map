@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>周麻婆福建选址决策地图 1.6</title>
+    <title>周麻婆福建选址决策地图 1.6.1</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="./assets/styles-v10.css?v=20260511-v16" />
+    <link rel="stylesheet" href="./assets/styles-v10.css?v=20260511-v161" />
   </head>
   <body>
     <main class="app-shell">
       <header class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">1.6 · 福建选址决策地图 · 按城市加载数据 · 城市 → 区县 → 镇街</p>
+          <p class="eyebrow">1.6.1 · 福建选址决策地图 · 评分与质量说明 · 城市 → 区县 → 镇街</p>
           <h1>周麻婆福建选址决策地图</h1>
           <p class="subtitle">围绕“今年开店先看哪里”来组织页面：先判断福建 9 城进入顺序，再用真实地图放大城市、区县和镇街，看潜力、适合店型、竞争验证和本店覆盖。</p>
         </div>
@@ -30,6 +30,47 @@
         <div class="path-step"><span>2</span><strong>城市放大</strong><em>看区县机会</em></div>
         <div class="path-step"><span>3</span><strong>区域镇街</strong><em>看镇街潜力</em></div>
         <div class="path-step"><span>4</span><strong>对比判断</strong><em>安排看铺顺序</em></div>
+      </section>
+
+      <section class="score-guide" id="scoreGuide" aria-label="评分与数据质量说明">
+        <div class="guide-head">
+          <div>
+            <p class="section-kicker">评分与质量说明</p>
+            <h2>分数看潜力，质量看可信度</h2>
+            <p>综合评分回答“这个城市、区县、镇街值不值得先看”；数据质量回答“现在这些信息能不能支撑下一步动作”。两者一起使用，避免只看高分，也避免因为资料还不满就错过机会。</p>
+          </div>
+          <div class="guide-note">
+            <strong>使用原则</strong>
+            <span>质量分低于 70 的对象只作为前置线索；质量分 70 以上才进入看铺、查租金、补平台数据或实地确认。最终签约仍以租金、门头、动线、平台销量和现场核验为准。</span>
+          </div>
+        </div>
+        <div class="guide-grid">
+          <article class="guide-card">
+            <h3>综合评分 0-100</h3>
+            <p>城市看市场容量、消费能力、商业餐饮活跃度、竞争格局、本店空白和战略价值；区县/镇街看服务人口、商业/POI、餐饮机会、竞品验证、本店覆盖、店型适配和风险压力。</p>
+          </article>
+          <article class="guide-card">
+            <h3>推荐等级</h3>
+            <div class="guide-scale"><b>A</b><span>84 分以上：优先进入或本周优先看</span></div>
+            <div class="guide-scale"><b>B</b><span>74-83 分：可推进，适合做区县/镇街对比</span></div>
+            <div class="guide-scale"><b>C</b><span>64-73 分：观察，先补关键数据再判断</span></div>
+            <div class="guide-scale"><b>D</b><span>64 分以下：暂缓，不作为近期主攻对象</span></div>
+          </article>
+          <article class="guide-card">
+            <h3>数据质量 0-100</h3>
+            <div class="guide-scale"><b>85+</b><span>可用于内部看铺排序，仍需现场复核</span></div>
+            <div class="guide-scale"><b>70-84</b><span>基本可用，适合安排租金和平台核验</span></div>
+            <div class="guide-scale"><b>55-69</b><span>线索可看，但结论要保守</span></div>
+            <div class="guide-scale"><b>&lt;55</b><span>只做机会提示，不进入推荐清单</span></div>
+          </article>
+          <article class="guide-card">
+            <h3>来源等级</h3>
+            <div class="guide-scale"><b>L4</b><span>官方/准官方：统计公报、政府资料、行政区划</span></div>
+            <div class="guide-scale"><b>L3</b><span>平台或用户样本：截图、导出、门店表、租金样本</span></div>
+            <div class="guide-scale"><b>L2</b><span>公开商业资料：商业报道、招商、商场、POI 线索</span></div>
+            <div class="guide-scale"><b>L1</b><span>模型推断：用于补齐底盘，必须标记初阶估算</span></div>
+          </article>
+        </div>
       </section>
 
       <section class="stage stage-province" id="provinceStage">
