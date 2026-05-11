@@ -12,9 +12,51 @@ const CITY_CODES = {
 
 const CORE_COMPETITORS = ["小叫天", "醉得意", "四方桌", "大丰收", "姑奶奶"];
 const FUJIAN_CITIES = Object.keys(CITY_CODES);
+const CITY_PACK_KEYS = [
+  "businessAreas",
+  "streets",
+  "sites",
+  "mallProjects",
+  "districts",
+  "poi",
+  "rentSamples",
+  "competitorStores",
+  "visits",
+  "images",
+  "radiusStats",
+  "verificationTasks",
+  "candidates",
+  "reports",
+  "fieldCoverage",
+  "cityKpi",
+  "districtKpi",
+  "businessProfiles",
+  "streetEnvironment",
+  "siteLeads",
+  "streetDecisions",
+  "storeDistribution",
+  "verificationQueue",
+  "publicEvidencePoints",
+  "streetEvidenceBundles",
+  "countyFoundation",
+  "townStreetFoundation",
+  "foodServiceSignals",
+  "countyDataPack",
+  "townStreetDataPack",
+  "foodOpportunitySignals",
+  "townStreetMapPoints",
+  "storeMapPoints",
+  "competitorMapPoints",
+  "evidenceMapPoints",
+  "townOpportunityPack",
+  "poiEvidencePack",
+  "townEvidencePack",
+];
 
 const state = {
   data: null,
+  cityPacks: {},
+  currentCityPack: null,
   provinceGeo: null,
   cityGeo: null,
   selectedCity: "福州",
@@ -354,6 +396,27 @@ function coreCompetitorRows(rows) {
 
 function decisionMap() {
   return state.data.v15DecisionMap || state.data.decisionMap || {};
+}
+
+function cityPackUrl(city) {
+  return `./data/city-packs/${encodeURIComponent(normalizeCity(city))}.json`;
+}
+
+function applyCityPack(city, pack) {
+  state.currentCityPack = pack || null;
+  CITY_PACK_KEYS.forEach((key) => {
+    state.data[key] = (pack && Array.isArray(pack[key])) ? pack[key] : [];
+  });
+}
+
+async function loadCityPack(city) {
+  const cityName = normalizeCity(city);
+  if (!state.cityPacks[cityName]) {
+    const res = await fetch(cityPackUrl(cityName), { cache: "no-store" });
+    if (!res.ok) throw new Error(`城市数据加载失败：${cityName}`);
+    state.cityPacks[cityName] = await res.json();
+  }
+  applyCityPack(cityName, state.cityPacks[cityName]);
 }
 
 function ownStorePoints(city = state.selectedCity, district = "") {
@@ -1067,13 +1130,17 @@ function streetRadius(row) {
 }
 
 function renderStats() {
-  const stores = (state.data.storeMapPoints || decisionMap().ownStorePoints || state.data.storeDistribution || []).filter((row) => text(row["品牌"], "周麻婆") === "周麻婆" && FUJIAN_CITIES.includes(normalizeCity(row["城市"])));
-  const competitors = coreCompetitorRows((state.data.competitorMapPoints || decisionMap().coreCompetitorPoints || state.data.competitorStores || []).filter((row) => FUJIAN_CITIES.includes(normalizeCity(row["城市"]))));
+  const summaries = decisionMap().citySummaries || [];
+  const sum = (key) => summaries.reduce((total, row) => total + numberValue(row[key], 0), 0);
+  const stores = sum("周麻婆门店数") || (state.data.storeMapPoints || decisionMap().ownStorePoints || state.data.storeDistribution || []).filter((row) => text(row["品牌"], "周麻婆") === "周麻婆" && FUJIAN_CITIES.includes(normalizeCity(row["城市"]))).length;
+  const competitors = sum("五大竞品门店数") || coreCompetitorRows((state.data.competitorMapPoints || decisionMap().coreCompetitorPoints || state.data.competitorStores || []).filter((row) => FUJIAN_CITIES.includes(normalizeCity(row["城市"])))).length;
+  const areas = sum("商圈样本数") || (state.data.businessAreas || []).filter((row) => FUJIAN_CITIES.includes(normalizeCity(row["城市"]))).length;
+  const streets = sum("镇街样本数") || ((state.data.townStreetMapPoints || state.data.townStreetFoundation || state.data.streetMapPoints || state.data.streetDecisions || [])).filter((row) => FUJIAN_CITIES.includes(normalizeCity(row["城市"]))).length;
   document.querySelector("#statCities").textContent = fujianCities().length;
-  document.querySelector("#statAreas").textContent = (state.data.businessAreas || []).filter((row) => FUJIAN_CITIES.includes(normalizeCity(row["城市"]))).length;
-  document.querySelector("#statStreets").textContent = ((state.data.townStreetMapPoints || state.data.townStreetFoundation || state.data.streetMapPoints || state.data.streetDecisions || [])).filter((row) => FUJIAN_CITIES.includes(normalizeCity(row["城市"]))).length;
-  document.querySelector("#statCompetitors").textContent = competitors.length;
-  document.querySelector("#statStores").textContent = stores.length;
+  document.querySelector("#statAreas").textContent = areas;
+  document.querySelector("#statStreets").textContent = streets;
+  document.querySelector("#statCompetitors").textContent = competitors;
+  document.querySelector("#statStores").textContent = stores;
 }
 
 function renderProvinceMap() {
@@ -1945,7 +2012,7 @@ function defaultStreetId() {
 
 async function selectCity(city) {
   state.selectedCity = normalizeCity(city);
-  await loadCityGeo(state.selectedCity);
+  await Promise.all([loadCityGeo(state.selectedCity), loadCityPack(state.selectedCity)]);
   state.selectedDistrict = defaultDistrict(state.selectedCity);
   state.selectedStreetId = defaultStreetId();
   state.selectedMapObject = null;
@@ -2036,12 +2103,12 @@ function renderAll() {
 
 async function boot() {
   const [dataRes, provinceRes] = await Promise.all([
-    fetch("./data/preview-data.json", { cache: "no-store" }),
+    fetch("./data/preview-data-core.json", { cache: "no-store" }),
     fetch("./data/fujian-350000-full.json", { cache: "no-store" }),
   ]);
   state.data = await dataRes.json();
   state.provinceGeo = await provinceRes.json();
-  await loadCityGeo(state.selectedCity);
+  await Promise.all([loadCityGeo(state.selectedCity), loadCityPack(state.selectedCity)]);
   state.selectedDistrict = defaultDistrict(state.selectedCity);
   state.selectedStreetId = defaultStreetId();
   bindControls();

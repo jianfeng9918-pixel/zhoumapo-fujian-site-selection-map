@@ -1,8 +1,9 @@
 __pycache__/
 *.py[cod]
 
-# Large generated backups. Keep the current data/preview-data.json only.
+# Large generated backups and the old monolithic data file.
 data/preview-data.bak-*.json
+data/preview-data.json
 data/*.tmp
 data/*.gz
 
